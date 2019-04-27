@@ -69,20 +69,21 @@ viewInput t p v toMsg =
 viewValidation : Model -> Html msg
 viewValidation model =
     if List.any String.isEmpty [ model.password, model.passwordAgain ] then
-        -- return empty string
-        inputFeedback "" ""
-
-    else if model.password == model.passwordAgain then
-        if String.length model.password < 2 then
-            inputFeedback "red" "Password must be more than 8 characters"
-
-        else
-            inputFeedback "green" "OK"
+        -- return empty div
+        div [] []
 
     else
-        inputFeedback "red" "Password don't match"
+        let
+            validations =
+                applyValidators2 basicPasswordValidators model.password model.passwordAgain
+        in
+        if List.isEmpty validations then
+            div [ style "color" "green" ] [ text "OK" ]
+
+        else
+            div [] <| List.map validationFeedback validations
 
 
-inputFeedback : String -> String -> Html msg
-inputFeedback c m =
-    div [ style "color" c ] [ text m ]
+validationFeedback : Validation -> Html msg
+validationFeedback t =
+    div [ style "color" "red" ] [ text (Tuple.second t) ]

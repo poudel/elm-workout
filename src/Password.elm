@@ -1,6 +1,7 @@
 module Password exposing
     ( PasswordValidator
     , Validation
+    , ValidationList
     , applyValidators
     , applyValidators2
     , basicPasswordValidators
@@ -10,6 +11,8 @@ module Password exposing
     , strMaxLen
     , strMinLen
     )
+
+import Debug
 
 
 type alias Validation =
@@ -55,28 +58,29 @@ strMinLen =
 
 
 shouldContain : Int -> String -> String -> String -> Validation
-shouldContain minCount charType charStr targetStr =
+shouldContain minCount charType charStr userInput =
     let
         errMessage =
             String.join " "
-                [ "Should contain at least "
+                [ "Should contain at least"
                 , String.fromInt minCount
-                , " of these: '" ++ charStr ++ "'"
+                , "of these: " ++ charStr
                 , charType
                 ]
 
-        targetChars =
-            String.toList targetStr
-
-        hasSpecial c =
-            if List.member c targetChars then
+        count : String -> Int
+        count s =
+            if String.contains s charStr then
                 1
 
             else
                 0
 
         totalCount =
-            List.sum <| List.map hasSpecial <| String.toList charStr
+            String.toList userInput
+                |> List.map String.fromChar
+                |> List.map count
+                |> List.sum
     in
     ( totalCount >= minCount, errMessage )
 
@@ -112,5 +116,5 @@ applyValidators validators str =
 
 
 applyValidators2 : List PasswordValidator -> String -> String -> ValidationList
-applyValidators2 validators pw1 pw2 =
-    applyValidators (shouldEqualTo pw1 :: validators) pw2
+applyValidators2 validators pw pwAgain =
+    applyValidators (shouldEqualTo pwAgain :: validators) pw
