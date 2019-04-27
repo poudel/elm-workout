@@ -5,6 +5,7 @@ module Password exposing
     , basicPasswordValidators
     , shouldContain
     , shouldContainUpperCase
+    , strLen
     , strMaxLen
     , strMinLen
     )
@@ -22,32 +23,34 @@ type alias PasswordValidator =
     String -> Validation
 
 
-strMinLen : Int -> String -> Validation
-strMinLen minLen str =
+type alias ComparisonFunction =
+    Int -> Int -> Bool
+
+
+strLen : String -> ComparisonFunction -> Int -> String -> Validation
+strLen name comparisonFunction expectedLen str =
     let
         errMessage =
-            "Should contain at least "
-                ++ String.fromInt minLen
-                ++ " characters."
+            String.join " "
+                [ "Should contain"
+                , name
+                , String.fromInt expectedLen
+                , "characters."
+                ]
 
         isValid =
-            String.length str >= minLen
+            -- first (operand) second
+            comparisonFunction (String.length str) expectedLen
     in
     ( isValid, errMessage )
 
 
-strMaxLen : Int -> String -> Validation
-strMaxLen maxLen str =
-    let
-        errMessage =
-            "Should not contain more than "
-                ++ String.fromInt maxLen
-                ++ " characters."
+strMaxLen =
+    strLen "maximum" (<=)
 
-        isValid =
-            String.length str <= maxLen
-    in
-    ( isValid, errMessage )
+
+strMinLen =
+    strLen "minimum" (>=)
 
 
 shouldContain : Int -> String -> String -> Validation
