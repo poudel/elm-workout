@@ -4,7 +4,6 @@ module Password exposing
     , applyValidators
     , basicPasswordValidators
     , shouldContain
-    , shouldContainUpperCase
     , strLen
     , strMaxLen
     , strMinLen
@@ -53,18 +52,19 @@ strMinLen =
     strLen "minimum" (>=)
 
 
-shouldContain : Int -> String -> String -> Validation
-shouldContain number special str =
+shouldContain : Int -> String -> String -> String -> Validation
+shouldContain minCount charType charStr targetStr =
     let
         errMessage =
-            "Should contain at least "
-                ++ String.fromInt number
-                ++ " of these: '"
-                ++ special
-                ++ "' characters."
+            String.join " "
+                [ "Should contain at least "
+                , String.fromInt minCount
+                , " of these: '" ++ charStr ++ "'"
+                , charType
+                ]
 
         targetChars =
-            String.toList str
+            String.toList targetStr
 
         hasSpecial c =
             if List.member c targetChars then
@@ -73,10 +73,10 @@ shouldContain number special str =
             else
                 0
 
-        foundCharacters =
-            List.sum <| List.map hasSpecial <| String.toList special
+        totalCount =
+            List.sum <| List.map hasSpecial <| String.toList charStr
     in
-    ( foundCharacters >= number, errMessage )
+    ( totalCount >= minCount, errMessage )
 
 
 shouldEqual : String -> String -> Validation
@@ -84,35 +84,13 @@ shouldEqual first second =
     ( first == second, "Both passwords should match." )
 
 
-shouldContainUpperCase : Int -> String -> Validation
-shouldContainUpperCase minCount str =
-    let
-        counter c =
-            if Char.isUpper c then
-                1
-
-            else
-                0
-
-        count =
-            String.toList str
-                |> List.map counter
-                |> List.sum
-    in
-    ( count >= minCount
-    , "Should contain at least "
-        ++ String.fromInt minCount
-        ++ " uppercase characters"
-    )
-
-
 basicPasswordValidators : List PasswordValidator
 basicPasswordValidators =
     [ strMinLen 8
     , strMaxLen 150
-    , shouldContain 1 "!@#$%^&*()./|\\"
-    , shouldContain 1 "0123456789"
-    , shouldContainUpperCase 1
+    , shouldContain 1 "special characters" "!@#$%^&*()./|\\"
+    , shouldContain 1 "numbers" "0123456789"
+    , shouldContain 1 "uppercase letters" "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     ]
 
 
