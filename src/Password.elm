@@ -2,8 +2,10 @@ module Password exposing
     ( PasswordValidator
     , Validation
     , applyValidators
+    , applyValidators2
     , basicPasswordValidators
     , shouldContain
+    , shouldEqualTo
     , strLen
     , strMaxLen
     , strMinLen
@@ -79,9 +81,9 @@ shouldContain minCount charType charStr targetStr =
     ( totalCount >= minCount, errMessage )
 
 
-shouldEqual : String -> String -> Validation
-shouldEqual first second =
-    ( first == second, "Both passwords should match." )
+shouldEqualTo : String -> String -> Validation
+shouldEqualTo first second =
+    ( first == second, "Both inputs should be equal" )
 
 
 basicPasswordValidators : List PasswordValidator
@@ -91,6 +93,7 @@ basicPasswordValidators =
     , shouldContain 1 "special characters" "!@#$%^&*()./|\\"
     , shouldContain 1 "numbers" "0123456789"
     , shouldContain 1 "uppercase letters" "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    , shouldContain 1 "lowercase letters" "abcdefghijklmnopqrstuvwxyz"
     ]
 
 
@@ -106,3 +109,8 @@ applyValidators validators str =
             v str
     in
     List.map apply validators |> List.filter validationFailed
+
+
+applyValidators2 : List PasswordValidator -> String -> String -> ValidationList
+applyValidators2 validators pw1 pw2 =
+    applyValidators (shouldEqualTo pw1 :: validators) pw2
