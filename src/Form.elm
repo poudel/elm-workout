@@ -16,12 +16,15 @@ main =
 
 
 type alias Model =
-    { email : String, password : String, passwordAgain : String }
+    { email : String
+    , password : String
+    , passwordAgain : String
+    }
 
 
 init : Model
 init =
-    { email = "", password = "", passwordAgain = "" }
+    Model "" "" ""
 
 
 
@@ -69,7 +72,6 @@ viewInput t p v toMsg =
 viewValidation : Model -> Html msg
 viewValidation model =
     if List.any String.isEmpty [ model.password, model.passwordAgain ] then
-        -- return empty div
         div [] []
 
     else
