@@ -19,12 +19,13 @@ type alias Model =
     { email : String
     , password : String
     , passwordAgain : String
+    , submitted : Bool
     }
 
 
 init : Model
 init =
-    Model "" "" ""
+    Model "" "" "" False
 
 
 
@@ -35,6 +36,7 @@ type Msg
     = Email String
     | Password String
     | PasswordAgain String
+    | Submit
 
 
 update : Msg -> Model -> Model
@@ -49,6 +51,9 @@ update msg model =
         PasswordAgain password ->
             { model | passwordAgain = password }
 
+        Submit ->
+            { model | submitted = True }
+
 
 
 -- VIEW
@@ -61,23 +66,32 @@ view model =
         , viewInput "password" "Password" model.password Password
         , viewInput "password" "Password again" model.passwordAgain PasswordAgain
         , viewValidation model
+        , button [ onClick Submit ] [ text "Submit" ]
         ]
 
 
 viewInput : String -> String -> String -> (String -> msg) -> Html msg
 viewInput t p v toMsg =
-    input [ type_ t, placeholder p, value v, onInput toMsg ] []
+    div [ style "margin-bottom" "10px" ]
+        [ input
+            [ type_ t
+            , placeholder p
+            , value v
+            , onInput toMsg
+            ]
+            []
+        ]
 
 
 viewValidation : Model -> Html msg
-viewValidation model =
-    if List.any String.isEmpty [ model.password, model.passwordAgain ] then
+viewValidation m =
+    if not m.submitted then
         div [] []
 
     else
         let
             validations =
-                applyValidators2 basicPasswordValidators model.password model.passwordAgain
+                applyValidators2 basicPasswordValidators m.password m.passwordAgain
         in
         if List.isEmpty validations then
             div [ style "color" "green" ] [ text "OK" ]
